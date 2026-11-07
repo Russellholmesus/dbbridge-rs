@@ -1,0 +1,24 @@
+node:
+  id: peer-b
+http:
+  enabled: false
+reverse:
+  enabled: true
+  peer_node_id: peer-a
+  token_file: shared.token
+  transport: ws
+  tunnels_per_endpoint: 2
+  endpoints:
+    - {id: public, url: "http://127.0.0.1:28080", priority: 1}
+  reconnect:
+    min_backoff: 200ms
+    max_backoff: 2s
+targets:
+  mysql-primary:
+    network: tcp
+    address: "127.0.0.1:3307"
+auth:
+  inbound_peers:
+    - id: peer-a
+      token_files: [shared.token]
+      allowed_targets: [mysql-primary]

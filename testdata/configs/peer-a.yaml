@@ -1,0 +1,64 @@
+node:
+  id: plant-a
+
+http:
+  enabled: false
+  listen: "127.0.0.1:18082"
+
+# /healthz, /readyz and /metrics on loopback only.
+admin:
+  enabled: true
+  listen: "127.0.0.1:18083"
+
+peers:
+  - id: hq-b
+    expected_node_id: hq-b
+    credential_ref: hq-b
+    endpoints:
+      - id: ep-primary
+        # Loopback-only lab sample; use https:// (tls.verify defaults to true) across networks.
+        url: "http://127.0.0.1:18080"
+        priority: 1
+    failover:
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+      healthcheck_interval: 5s
+      healthcheck_timeout: 2s
+      cooldown: 5s
+    recovery:
+      enabled: true
+    token_env: "DBB_TOKEN_TO_HQ"
+
+listeners:
+  - id: mysql-local
+    listen: "127.0.0.1:13306"
+    peer: hq-b
+    target: mysql-primary
+
+targets: {}
+
+auth:
+  inbound_peers: []
+
+transport:
+  protocol: auto
+  protocol_version: "1.5"
+  frame_size: 32768
+  max_frame_size: 262144
+  h2_pool_size: 4
+  heartbeat: 15s
+
+  # Session recovery (the recovery grace is negotiated: the smaller value applies)
+  recovery:
+    enabled: true
+    grace: 30s
+    barrier_timeout: 5s
+
+  # Buffers and flow control (the values shown are the defaults)
+  ack_batch_bytes: 1MiB
+  ack_max_delay: 200ms
+  chunk_size: 32KiB
+  buffer_per_direction: 4MiB
+  suspended_buffer_limit: 64MiB
+  global_buffer_limit: 256MiB
+  sql_replay: false

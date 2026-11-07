@@ -1,0 +1,55 @@
+node:
+  id: hq-b
+
+http:
+  enabled: true
+  listen: "127.0.0.1:18080"
+
+# /healthz, /readyz and /metrics on loopback only.
+admin:
+  enabled: true
+  listen: "127.0.0.1:18090"
+
+peers: []
+listeners: []
+
+targets:
+  mysql-primary:
+    network: tcp
+    address: "127.0.0.1:3306"
+    allowed_cidrs:
+      - "127.0.0.1/32"
+
+auth:
+  inbound_peers:
+    - id: plant-a
+      # Every listed source must resolve. During a rotation list the old and
+      # the new token (the same value twice is accepted). A token file can be
+      # rotated without a restart; an environment variable cannot.
+      token_envs:
+        - "DBB_TOKEN_FROM_PLANT_CURRENT"
+      allowed_targets: [mysql-primary]
+      max_sessions: 200
+
+transport:
+  protocol: auto
+  protocol_version: "1.5"
+  frame_size: 32768
+  max_frame_size: 262144
+  h2_pool_size: 4
+  heartbeat: 15s
+
+  # Session recovery (the recovery grace is negotiated: the smaller value applies)
+  recovery:
+    enabled: true
+    grace: 30s
+    barrier_timeout: 5s
+
+  # Buffers and flow control (the values shown are the defaults)
+  ack_batch_bytes: 1MiB
+  ack_max_delay: 200ms
+  chunk_size: 32KiB
+  buffer_per_direction: 4MiB
+  suspended_buffer_limit: 64MiB
+  global_buffer_limit: 256MiB
+  sql_replay: false

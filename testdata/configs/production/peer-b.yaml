@@ -1,0 +1,36 @@
+node:
+  id: B
+http:
+  enabled: true
+  listen: "0.0.0.0:8443"
+  tls:
+    enabled: true
+    cert_file: /etc/dbbridge/tls/b.crt
+    key_file: /etc/dbbridge/tls/b.key
+# /healthz, /readyz and /metrics on loopback only.
+admin:
+  enabled: true
+  listen: "127.0.0.1:9081"
+auth:
+  credentials_file: auth-b.yaml
+  reload_interval: 5s
+peers:
+  - id: A
+    expected_node_id: A
+    credential_ref: A
+    # The peer terminates TLS itself on http.listen 0.0.0.0:8443. Drop ":8443"
+    # only when a load balancer or reverse proxy forwards 443 to that port.
+    endpoints:
+      - {id: primary, url: "https://a-primary.example.invalid:8443", priority: 1}
+      - {id: secondary, url: "https://a-secondary.example.invalid:8443", priority: 2}
+      - {id: tertiary, url: "https://a-tertiary.example.invalid:8443", priority: 3}
+    tls: {verify: true}
+    failover: {enabled: true, strategy: priority, failback: new_sessions}
+listeners:
+  - {id: mssql-at-a, listen: "127.0.0.1:11433", peer: A, target: mssql}
+targets:
+  mysql: {network: tcp, address: "127.0.0.1:3306", allowed_cidrs: ["127.0.0.1/32"]}
+transport:
+  protocol: auto
+  protocol_version: "1.5"
+  recovery: {enabled: true, grace: 30s, barrier_timeout: 5s}

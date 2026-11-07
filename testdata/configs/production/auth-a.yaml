@@ -1,0 +1,16 @@
+version: 1
+# Token files are re-read every auth.reload_interval and on SIGHUP, so a
+# token can be rotated without a restart: add the new file next to the old
+# one, wait for the reload, switch the sender, then remove the old file.
+# Paths are relative to this file (/etc/dbbridge); keep the files 0640
+# root:dbbridge. token_envs/token_env also work, but a token taken from an
+# environment variable only changes with a restart.
+inbound_peers:
+  - id: B
+    token_files: [tokens/b-to-a.token]
+    allowed_targets: [mssql]
+    # Half of limits.max_sessions: the local listeners of this bidirectional
+    # node share the same session budget.
+    max_sessions: 100
+outbound_peers:
+  - {id: B, token_file: tokens/a-to-b.token}

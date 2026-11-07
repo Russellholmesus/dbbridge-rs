@@ -1,0 +1,69 @@
+node:
+  id: plant-a                     # unique ID of the plant (ingress) node
+
+# Ingress-only node: no inbound HTTP server (http.listen is not used while disabled)
+http:
+  enabled: false
+  listen: "127.0.0.1:18082"
+
+# /healthz, /readyz and /metrics on loopback only.
+admin:
+  enabled: true
+  listen: "127.0.0.1:18083"
+
+# Outbound peer: the headquarters egress node.
+peers:
+  - id: hq-b
+    expected_node_id: hq-b
+    credential_ref: hq-b
+    endpoints:
+      - id: ep-primary
+        # Loopback-only lab sample; across networks use an https:// URL (tls.verify
+        # defaults to true), never plaintext http:// or tls.verify: false.
+        url: "http://127.0.0.1:18080"
+        priority: 1
+    failover:
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+      healthcheck_interval: 5s
+      healthcheck_timeout: 2s
+      cooldown: 5s
+    recovery:
+      enabled: true
+    token_env: "DBB_TOKEN_TO_HQ"   # exactly one of token_env / token_file; a token_file can be rotated without a restart
+
+# Local listener for SQL Server clients.
+listeners:
+  - id: mssql-local
+    listen: "127.0.0.1:1433"       # use another port (for example 11433) if a local SQL Server uses 1433
+    peer: hq-b
+    target: mssql-primary
+
+targets: {}                        # ingress-only: this node offers no database
+auth:
+  inbound_peers: []               # ingress-only: no inbound identities
+
+# Transport settings (the values shown are the defaults). Per-session limits and
+# the recovery grace are negotiated: the smaller value of the two nodes applies.
+transport:
+  protocol: auto
+  protocol_version: "1.5"
+  frame_size: 32768
+  max_frame_size: 262144
+  h2_pool_size: 4
+  heartbeat: 15s
+
+  # Session recovery
+  recovery:
+    enabled: true
+    grace: 30s
+    barrier_timeout: 5s
+
+  # Buffers and flow control
+  ack_batch_bytes: 1MiB
+  ack_max_delay: 200ms
+  chunk_size: 32KiB
+  buffer_per_direction: 4MiB
+  suspended_buffer_limit: 64MiB
+  global_buffer_limit: 256MiB
+  sql_replay: false

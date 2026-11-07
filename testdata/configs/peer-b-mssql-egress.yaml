@@ -1,0 +1,66 @@
+node:
+  id: hq-b                        # unique ID of the headquarters (egress) node
+
+# Inbound peer server (WebSocket and HTTP/SSE).
+http:
+  enabled: true
+  # Loopback only. To accept ingress nodes from other hosts, listen on "0.0.0.0:8443"
+  # and enable tls below (or keep loopback behind a local TLS reverse proxy); do not
+  # use plaintext (http.allow_insecure_listen) across networks.
+  listen: "127.0.0.1:18080"
+  # tls:
+  #   enabled: true
+  #   cert_file: /etc/dbbridge/tls/server.crt
+  #   key_file: /etc/dbbridge/tls/server.key
+
+# /healthz, /readyz and /metrics on loopback only.
+admin:
+  enabled: true
+  listen: "127.0.0.1:18090"
+
+# Egress-only node: no outbound peers and no local listeners.
+peers: []
+listeners: []
+
+# Databases this node may dial (Microsoft SQL Server).
+targets:
+  mssql-primary:
+    network: tcp
+    address: "127.0.0.1:1433"     # SQL Server instance (use a fixed TCP port)
+    allowed_cidrs:
+      - "127.0.0.1/32"            # addresses the target may resolve to
+
+# Inbound identities and target ACLs.
+auth:
+  inbound_peers:
+    - id: plant-a                 # identity of the connecting node
+      token_envs:                 # every listed source must resolve; token_files can be rotated without a restart
+        - "DBB_TOKEN_FROM_PLANT_CURRENT"
+      allowed_targets:
+        - mssql-primary           # target IDs this identity may use
+      max_sessions: 200           # concurrent sessions of this identity
+
+# Transport settings (the values shown are the defaults). Per-session limits and
+# the recovery grace are negotiated: the smaller value of the two nodes applies.
+transport:
+  protocol: auto
+  protocol_version: "1.5"
+  frame_size: 32768
+  max_frame_size: 262144
+  h2_pool_size: 4
+  heartbeat: 15s
+
+  # Session recovery
+  recovery:
+    enabled: true
+    grace: 30s
+    barrier_timeout: 5s
+
+  # Buffers and flow control
+  ack_batch_bytes: 1MiB
+  ack_max_delay: 200ms
+  chunk_size: 32KiB
+  buffer_per_direction: 4MiB
+  suspended_buffer_limit: 64MiB
+  global_buffer_limit: 256MiB
+  sql_replay: false

@@ -1,0 +1,37 @@
+# Node B: egress. Terminates peer traffic and dials the real database.
+node:
+  id: peer-b
+
+http:
+  enabled: true
+  listen: "127.0.0.1:18080"
+
+admin:
+  enabled: true
+  listen: "127.0.0.1:18090"
+
+peers: []
+listeners: []
+
+targets:
+  mysql-primary:
+    network: tcp
+    address: "127.0.0.1:3306"
+    allowed_cidrs:
+      - "127.0.0.1/32"
+
+auth:
+  inbound_peers:
+    - id: peer-a
+      token_files: [shared.token]
+      allowed_targets:
+        - mysql-primary
+      max_sessions: 200
+
+transport:
+  protocol: auto
+  frame_size: 32KiB
+  max_frame_size: 256KiB
+  heartbeat: 15s
+  recovery:
+    enabled: false

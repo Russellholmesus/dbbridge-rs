@@ -1,0 +1,1430 @@
+{
+  "format": 2,
+  "cases": [
+    {
+      "name": "case-001",
+      "offline": false,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "file": "testdata/configs/peer-a-mssql-ingress.yaml"
+    },
+    {
+      "name": "case-002",
+      "offline": false,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "file": "testdata/configs/peer-a.yaml"
+    },
+    {
+      "name": "case-003",
+      "offline": false,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "file": "testdata/configs/peer-b-mssql-egress.yaml"
+    },
+    {
+      "name": "case-004",
+      "offline": false,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "file": "testdata/configs/peer-b.yaml"
+    },
+    {
+      "name": "case-005",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "file": "testdata/configs/production/auth-a.yaml"
+    },
+    {
+      "name": "case-006",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "file": "testdata/configs/production/auth-b.yaml"
+    },
+    {
+      "name": "case-007",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "file": "testdata/configs/production/peer-a.yaml"
+    },
+    {
+      "name": "case-008",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "file": "testdata/configs/production/peer-b.yaml"
+    },
+    {
+      "name": "case-009",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport:\n  resume_enabled: true\n"
+    },
+    {
+      "name": "case-010",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport:\n  resume_grace: 30s\n"
+    },
+    {
+      "name": "case-011",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport:\n  resume_barrier_timeout: 5s\n"
+    },
+    {
+      "name": "case-012",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\npeers:\n  - id: B\n    url: https://b.invalid\n"
+    },
+    {
+      "name": "case-013",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\npeers:\n  - id: B\n    failover:\n      mode: priority\n"
+    },
+    {
+      "name": "case-014",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners:\n  - id: db\n    resume_enabled: true\n"
+    },
+    {
+      "name": "case-015",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nauth:\n  inbound_peers:\n    - id: B\n      tokens: [test-token]\n"
+    },
+    {
+      "name": "case-016",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: A\n"
+    },
+    {
+      "name": "case-017",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "\nnode:\n  id: node-1\ntargets:\n  t1:\n    address: \"127.0.0.1:3306\"\n    allowed_cidrs: [\"not-a-valid-cidr\"]\npeers:\n  - id: p1\n    endpoints:\n      - id: ep1\n        url: \"http://127.0.0.1:18080\"\n"
+    },
+    {
+      "name": "case-018",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "\nnode:\n  id: node-1\npeers:\n  - id: p1\n    endpoints:\n      - id: ep1\n        url: \"http://example.com:18080\"\n"
+    },
+    {
+      "name": "case-019",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "\nnode:\n  id: node-1\npeers:\n  - id: p1\n    endpoints:\n      - id: ep1\n        url: \"http://127.0.0.1:18080\"\ntransport:\n  heartbeat: 0s\n"
+    },
+    {
+      "name": "case-020",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-021",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://example.com:18080"
+    },
+    {
+      "name": "case-022",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-023",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: B}\nhttp: {enabled: true, listen: \"127.0.0.1:0\"}\ntargets: {db: {network: tcp, address: \"127.0.0.1:3306\", allowed_cidrs: [\"127.0.0.1/32\"]}}\nlimits: {max_sessions: 10}\nauth:\n  inbound_peers:\n"
+    },
+    {
+      "name": "case-024",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nunknown_key: 1\n"
+    },
+    {
+      "name": "case-025",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\ntransport: {protocol: carrier-pigeon}\n"
+    },
+    {
+      "name": "case-026",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: first\n---\nunknown_security_option: true\n"
+    },
+    {
+      "name": "case-027",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://[::1]:80"
+    },
+    {
+      "name": "case-028",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "content": "node:\n  id: A\npeers:\n  - id: B\n    expected_node_id: B\n    credential_ref: B\n    token_env: DBB_TEST_INLINE_TOK\n    endpoints:\n      - id: e1\n        url: http://127.0.0.1:18080\n"
+    },
+    {
+      "name": "case-029",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {recovery: {grace: 4s}}\n"
+    },
+    {
+      "name": "case-030",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {buffer_per_direction: 128KiB}\n"
+    },
+    {
+      "name": "case-031",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {global_buffer_limit: 64MiB}\n"
+    },
+    {
+      "name": "case-032",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {buffer_per_direction: "
+    },
+    {
+      "name": "case-033",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {buffer_per_direction: 256KiB, max_frame_size: 512KiB}\n"
+    },
+    {
+      "name": "case-034",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://b.example.invalid:18081"
+    },
+    {
+      "name": "case-035",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18081"
+    },
+    {
+      "name": "case-036",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-037",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:8080"
+    },
+    {
+      "name": "case-038",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://192.0.2.1:8080"
+    },
+    {
+      "name": "case-039",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://192.0.2.1:18080"
+    },
+    {
+      "name": "case-040",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntargets:\n  db: {network: udp, address: '127.0.0.1:3306'}\n"
+    },
+    {
+      "name": "case-041",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntargets:\n  db: {network: tcp, address: '127.0.0.1:0'}\n"
+    },
+    {
+      "name": "case-042",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntargets:\n  db: {network: tcp, address: ':3306'}\n"
+    },
+    {
+      "name": "case-043",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-005"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp: {enabled: true, listen: '0.0.0.0:8888'}\nadmin: {enabled: true, listen: '127.0.0.1:8888'}\n"
+    },
+    {
+      "name": "case-044",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {up_max_inflight_frames: 32, receipt_limit_per_session: 64}\n"
+    },
+    {
+      "name": "case-045",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {resume_max_retries: 5}\n"
+    },
+    {
+      "name": "case-046",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node: {id: A}\n"
+    },
+    {
+      "name": "case-047",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners: [{id: l, listen: '127.0.0.1:13306', peer: B, target: db}]\n"
+    },
+    {
+      "name": "case-048",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp: {enabled: true, listen: '127.0.0.1:18443', allow_insecure_listen: true}\n"
+    },
+    {
+      "name": "case-049",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do",
+        "Warning: targets are configured but http.enabled is false; they are only used by the inbound HTTP server"
+      ],
+      "content": "node:\n  id: config-diff\ntargets: {db: {address: '127.0.0.1:3306', allowed_cidrs: ['127.0.0.1/32']}}\n"
+    },
+    {
+      "name": "case-050",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: auth inbound peers are configured but http.enabled is false; this node never accepts inbound sessions",
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nauth: {inbound_peers: [{id: B, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]}]}\n"
+    },
+    {
+      "name": "case-051",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners: [{id: l, listen: '127.0.0.1:13306', peer: B, target: db}]\n"
+    },
+    {
+      "name": "case-052",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {dial_timeout: 3s}\n"
+    },
+    {
+      "name": "case-053",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {dial_timeout: 3s, peer_dial_timeout: 750ms}\n"
+    },
+    {
+      "name": "case-054",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {peer_dial_timeout: -1s}\n"
+    },
+    {
+      "name": "case-055",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners:"
+    },
+    {
+      "name": "case-056",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners:"
+    },
+    {
+      "name": "case-057",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {codec_buffer_limit: 2MiB}\n"
+    },
+    {
+      "name": "case-058",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {codec_buffer_limit: 4MiB}\n"
+    },
+    {
+      "name": "case-059",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: hq-b}\nhttp: {enabled: true, listen: \"127.0.0.1:0\"}\nauth:\n  inbound_peers: [{id: plant, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]}]\ntargets: {db: {address: \"127.0.0.1:3306\"}}\npeers:\n  - id: plant\n    mode: reverse\n    expected_node_id: plant-a\n    credential_ref: plant\n    token_env: DBB_TEST_TOKEN\n%s\nlisteners: [{id: l, listen: \"127.0.0.1:0\", peer: plant, target: db}]\n%s"
+    },
+    {
+      "name": "case-060",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: plant-a}\nauth:\n  inbound_peers: [{id: hq, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]}]\ntargets: {db: {address: \"127.0.0.1:3306\"}}\nreverse:\n  enabled: true\n%s\n%s"
+    },
+    {
+      "name": "case-061",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\n\ntransport: long-poll\ntunnels_per_endpoint: 4\nreconnect: {min_backoff: 2s, max_backoff: 1m}"
+    },
+    {
+      "name": "case-062",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-063",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-064",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-065",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18081"
+    },
+    {
+      "name": "case-066",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp: {enabled: true, listen: \"127.0.0.1:0\"}"
+    },
+    {
+      "name": "case-067",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {verify: true}"
+    },
+    {
+      "name": "case-068",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners:"
+    },
+    {
+      "name": "case-069",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18085"
+    },
+    {
+      "name": "case-070",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\n\ntransport: carrier-pigeon"
+    },
+    {
+      "name": "case-071",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\n\ntls: {verify: false}"
+    },
+    {
+      "name": "case-072",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\n\ntls: {ca_file: missing-ca.pem}"
+    },
+    {
+      "name": "case-073",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\n\ntls: {verify: false, allow_insecure_skip_verify: true}"
+    },
+    {
+      "name": "case-074",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do",
+        "Warning: targets are configured but http.enabled is false; they are only used by the inbound HTTP server"
+      ],
+      "content": "node:\n  id: config-diff\ntargets: {db: {address: \"127.0.0.1:3306\"}}"
+    },
+    {
+      "name": "case-075",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport:\n  recovery: {enabled: true, grace: 12s, barrier_timeout: 3s}\n"
+    },
+    {
+      "name": "case-076",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport:\n  recovery: {enabled: true, grace: 60s}\n"
+    },
+    {
+      "name": "case-077",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-078",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-079",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {protocol_version: \"1.4\"}"
+    },
+    {
+      "name": "case-080",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\ntransport: {recovery: {enabled: null}}\n"
+    },
+    {
+      "name": "case-081",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nhttp: {allowed_transports: null}\n"
+    },
+    {
+      "name": "case-082",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: 123}\n"
+    },
+    {
+      "name": "case-083",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nauth: {reload_interval: -1s}\n"
+    },
+    {
+      "name": "case-084",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: true}\n"
+    },
+    {
+      "name": "case-085",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nhttp: {enabled: 'true'}\n"
+    },
+    {
+      "name": "case-086",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nhttp: []\n"
+    },
+    {
+      "name": "case-087",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\npeers: {}\n"
+    },
+    {
+      "name": "case-088",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\ntargets: {db: null}\n"
+    },
+    {
+      "name": "case-089",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\ntransport: {frame_size: true}\n"
+    },
+    {
+      "name": "case-090",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\ntransport: {heartbeat: false}\n"
+    },
+    {
+      "name": "case-091",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\ntransport: {ws: null}\n"
+    },
+    {
+      "name": "case-092",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: &numeric 1.5\ntransport:\n  protocol_version: *numeric\n"
+    },
+    {
+      "name": "case-093",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-094",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.1:18080"
+    },
+    {
+      "name": "case-095",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "content": "node: {id: B}\nhttp:\n  enabled: true\n  tls: {enabled: true, cert_file: missing.crt, key_file: missing.key}\n"
+    },
+    {
+      "name": "case-096",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\npeers:\n  - id: B\n    expected_node_id: B\n    credential_ref: B\n    token_env: DBB_TEST_TOKEN\n    endpoints: [{id: e, url: %q, priority: 1}]\n%s\n%s"
+    },
+    {
+      "name": "case-097",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nauth:\n  inbound_peers:\n    - {id: A, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]%s}\n    - {id: C, token_envs: [DBB_TEST_TOKEN_C], allowed_targets: [db]%s}\n"
+    },
+    {
+      "name": "case-098",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {heartbeat: 1.5, failure_detect_timeout: 4.5}\n"
+    },
+    {
+      "name": "case-099",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {heartbeat: .nan}\n"
+    },
+    {
+      "name": "case-100",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nauth: {reload_interval: "
+    },
+    {
+      "name": "case-101",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://127.0.0.2:18080"
+    },
+    {
+      "name": "case-102",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://localhost:18080"
+    },
+    {
+      "name": "case-103",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://[::1]:18080"
+    },
+    {
+      "name": "case-104",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://10.0.0.1:18080"
+    },
+    {
+      "name": "case-105",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nhttp: {enabled: true, listen: %q}\n"
+    },
+    {
+      "name": "case-106",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: {id: A}\nadmin: "
+    },
+    {
+      "name": "case-107",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node: {id: A}\nadmin: {enabled: true}\n"
+    },
+    {
+      "name": "case-108",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {verify: false}"
+    },
+    {
+      "name": "case-109",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {verify: false, allow_insecure_skip_verify: true}"
+    },
+    {
+      "name": "case-110",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {verify: false}"
+    },
+    {
+      "name": "case-111",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {verify: false}"
+    },
+    {
+      "name": "case-112",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {verify: true}"
+    },
+    {
+      "name": "case-113",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {ca_file: "
+    },
+    {
+      "name": "case-114",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {ca_file: "
+    },
+    {
+      "name": "case-115",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {ca_file: /definitely/missing/ca.pem}"
+    },
+    {
+      "name": "case-116",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntls: {ca_file: "
+    },
+    {
+      "name": "case-117",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do",
+        "Warning: targets are configured but http.enabled is false; they are only used by the inbound HTTP server"
+      ],
+      "content": "node: {id: B}\ntargets: {db: {address: '127.0.0.1:3306', allowed_cidrs: ['127.0.0.1/32']}}\n"
+    },
+    {
+      "name": "case-118",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nlimits: {max_sessions: 400}\ntransport: {metadata_limit: 64MiB}\n"
+    },
+    {
+      "name": "case-119",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: auth inbound peers are configured but http.enabled is false; this node never accepts inbound sessions",
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nauth:\n  inbound_peers:\n    - {id: A, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]}\n"
+    },
+    {
+      "name": "case-120",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node: &n {id: A}\nhttp: *n\n"
+    },
+    {
+      "name": "case-121",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node: {id: &i A}\nadmin: {listen: *i}\n"
+    },
+    {
+      "name": "case-122",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "content": "node: {id: B}\nhttp: {enabled: true, listen: '127.0.0.1:18080'}\ntargets: {db: {address: '127.0.0.1:3306', allowed_cidrs: ['127.0.0.1/32']}}\n"
+    },
+    {
+      "name": "case-123",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [],
+      "content": "node: {id: B}\nhttp: {enabled: true, listen: '0.0.0.0:8443', tls: {enabled: true, cert_file: /nonexistent/b.crt, key_file: /nonexistent/b.key}}\ntargets: {db: {address: '127.0.0.1:3306', allowed_cidrs: ['127.0.0.1/32']}}\nauth:\n  inbound_peers:\n    - {id: A, token_envs: [DBB_TEST_OFFLINE_UNSET], allowed_targets: [db]}\npeers:\n  - {id: A, expected_node_id: A, credential_ref: A, token_file: /nonexistent/t, tls: {ca_file: /nonexistent/ca.pem}, endpoints: [{id: e, url: 'https://a.example.invalid:8443'}]}\n"
+    },
+    {
+      "name": "case-124",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: auth inbound peers are configured but http.enabled is false; this node never accepts inbound sessions",
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nauth:\n  inbound_peers:\n    - {id: A, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]}\n"
+    },
+    {
+      "name": "case-125",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners: [{id: l, listen: '0.0.0.0:13306', peer: B, target: db}]\n"
+    },
+    {
+      "name": "case-126",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlisteners: [{id: l, listen: '127.0.0.1:13306', peer: B, target: db}]\n"
+    },
+    {
+      "name": "case-127",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: auth inbound peers are configured but http.enabled is false; this node never accepts inbound sessions",
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nauth:\n  inbound_peers:\n    - {id: plant-a, token_envs: [DBB_TEST_UNSET_VAR], allowed_targets: [db]}\n"
+    },
+    {
+      "name": "case-128",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {heartbeat: 20s}\n"
+    },
+    {
+      "name": "case-129",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {buffer_per_direction: 1MiB}\n"
+    },
+    {
+      "name": "case-130",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntransport: {heartbeat: 20s, failure_detect_timeout: 30s}\n"
+    },
+    {
+      "name": "case-131",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node: {id: A}\n"
+    },
+    {
+      "name": "case-132",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node: {id: B}"
+    },
+    {
+      "name": "case-133",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do",
+        "Warning: node id \"bad idé x\" should match ^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$ (letters, digits, '.', '_', '-', at most 64 characters)"
+      ],
+      "content": "node: {id: 'bad idé x'}"
+    },
+    {
+      "name": "case-134",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: auth inbound peers are configured but http.enabled is false; this node never accepts inbound sessions",
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nauth:\n  inbound_peers:\n    - {id: A, token_envs: [DBB_TEST_TOKEN], allowed_targets: [db]}\n"
+    },
+    {
+      "name": "case-135",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nlimits: {max_sessions: 10}\n"
+    },
+    {
+      "name": "case-136",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntargets: {db:"
+    },
+    {
+      "name": "case-137",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\ntargets: {'':"
+    },
+    {
+      "name": "case-138",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://10.0.0.5:18080"
+    },
+    {
+      "name": "case-139",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-001"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nhttp://10.0.0.5:18080"
+    },
+    {
+      "name": "case-140",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nauth: {reload_interval: 5}\n"
+    },
+    {
+      "name": "case-141",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nauth: {reload_interval: -1}\n"
+    },
+    {
+      "name": "case-142",
+      "offline": true,
+      "exit_code": 78,
+      "error_codes": [
+        "DBB-CFG-002"
+      ],
+      "warnings": [],
+      "content": "node:\n  id: config-diff\nlimits: {max_sessions: 1000}\n"
+    },
+    {
+      "name": "case-143",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\nlimits: {max_sessions: 1000}\ntransport: {metadata_limit: 128MiB}\n"
+    },
+    {
+      "name": "case-144",
+      "offline": true,
+      "exit_code": 0,
+      "error_codes": [],
+      "warnings": [
+        "Warning: neither http.enabled nor any peers or listeners are configured; the node has nothing to do"
+      ],
+      "content": "node:\n  id: config-diff\ntransport: {shutdown_timeout: 20s}\n"
+    }
+  ]
+}

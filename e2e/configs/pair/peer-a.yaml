@@ -1,0 +1,45 @@
+# Node A: ingress. Local database clients connect to the listener below and
+# their bytes travel to node B over HTTPS.
+node:
+  id: peer-a
+
+http:
+  enabled: false
+  listen: "127.0.0.1:18082"
+
+admin:
+  enabled: true
+  listen: "127.0.0.1:18083"
+
+peers:
+  - id: peer-b
+    expected_node_id: peer-b
+    token_file: shared.token
+    credential_ref: peer-b
+    endpoints:
+      - {id: primary, url: "http://127.0.0.1:18080", priority: 1}
+    failover:
+      healthy_threshold: 2
+      unhealthy_threshold: 3
+      healthcheck_interval: 5s
+      healthcheck_timeout: 2s
+      cooldown: 5s
+
+listeners:
+  - id: local
+    listen: "127.0.0.1:13306"
+    peer: peer-b
+    target: mysql-primary
+
+targets: {}
+
+auth:
+  inbound_peers: []
+
+transport:
+  protocol: auto
+  frame_size: 32KiB
+  max_frame_size: 256KiB
+  heartbeat: 15s
+  recovery:
+    enabled: false

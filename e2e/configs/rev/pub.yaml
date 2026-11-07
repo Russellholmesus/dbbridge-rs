@@ -1,0 +1,22 @@
+node:
+  id: peer-a
+http:
+  enabled: true
+  listen: "127.0.0.1:28080"
+admin:
+  enabled: true
+  listen: "127.0.0.1:28083"
+peers:
+  - id: peer-b
+    mode: reverse
+    expected_node_id: peer-b
+    token_file: shared.token
+    credential_ref: peer-b
+listeners:
+  - id: local
+    listen: "127.0.0.1:23306"
+    peer: peer-b
+    target: mysql-primary
+targets: {}
+auth:
+  inbound_peers: []

@@ -1,0 +1,55 @@
+name: Rust CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  config-check:
+    name: check-config corpus
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install Rust stable toolchain
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
+      - name: Build
+        run: cargo build --release --bin dbbridge
+
+      - name: Compare check-config results with the recorded corpus
+        run: python3 scripts/config-check.py --bin target/release/dbbridge
+
+  verify:
+    name: Full verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install Rust stable toolchain and verification components
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy --component rustfmt
+          rustup default stable
+
+      - name: Install musl cross-build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y binutils gcc-aarch64-linux-gnu libc6-dev-arm64-cross musl-tools
+
+      - name: Run complete verification
+        run: bash scripts/verify.sh

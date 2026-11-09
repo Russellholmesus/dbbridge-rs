@@ -16,7 +16,7 @@ DBBridge（协议 1.5）是点对点数据库代理，把 MySQL、MariaDB、SQL 
 | 配置 / CLI | 严格的 YAML 校验、派生默认值与 warning；命令 `run`、`check-config`、`gen-config`、`version` |
 | 运维 | `/healthz`、`/readyz`、`/metrics`；凭据热加载；systemd unit / install |
 
-`cargo build --no-default-features` 构建完全不依赖第三方 crate 的版本（不含 TLS / HTTP/2）。MSRV 为 Rust 1.75。
+`cargo build --no-default-features` 构建完全不依赖第三方 crate 的版本（不含 TLS / HTTP/2）。MSRV 为 Rust 1.85。
 
 ## 构建
 

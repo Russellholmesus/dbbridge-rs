@@ -1198,7 +1198,7 @@ mod tests {
     fn token_plus_256_nul_does_not_match() {
         let t = b"T";
         let mut e = t.to_vec();
-        e.extend(std::iter::repeat(0).take(256));
+        e.extend(std::iter::repeat_n(0, 256));
         assert!(!constant_time_eq(t, &e));
     }
     #[test]

@@ -2,7 +2,7 @@
 name = "dbbridge"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.85"
 description = "Peer-to-peer database proxy over plain HTTPS (WebSocket / HTTP-SSE)"
 license = "Apache-2.0"
 
@@ -14,20 +14,30 @@ path = "src/main.rs"
 
 [features]
 default = ["tls", "h2"]
-tls = ["dep:rustls", "dep:rustls-pemfile", "dep:rustls-native-certs"]
-h2 = ["tls", "dep:tokio", "dep:hyper", "dep:tokio-rustls", "dep:tokio-stream"]
+tls = ["dep:rustls", "dep:rustls-pki-types", "dep:rustls-native-certs"]
+h2 = [
+    "tls",
+    "dep:tokio",
+    "dep:hyper",
+    "dep:hyper-util",
+    "dep:http-body-util",
+    "dep:tokio-rustls",
+    "dep:tokio-stream",
+]
 
 [dependencies.rustls]
-version = "0.21"
+version = "0.23"
 optional = true
-features = ["dangerous_configuration"]
+default-features = false
+features = ["ring", "std", "tls12", "logging"]
 
-[dependencies.rustls-pemfile]
+[dependencies.rustls-pki-types]
 version = "1"
 optional = true
+features = ["std"]
 
 [dependencies.rustls-native-certs]
-version = "0.6"
+version = "0.8"
 optional = true
 
 [dependencies.tokio]
@@ -36,13 +46,24 @@ features = ["rt", "rt-multi-thread", "net", "sync", "time", "io-util"]
 optional = true
 
 [dependencies.hyper]
-version = "0.14"
-features = ["client", "server", "http2", "stream", "runtime"]
+version = "1"
+features = ["client", "server", "http2"]
+optional = true
+
+[dependencies.hyper-util]
+version = "0.1"
+features = ["tokio"]
+optional = true
+
+[dependencies.http-body-util]
+version = "0.1"
 optional = true
 
 [dependencies.tokio-rustls]
-version = "0.24"
+version = "0.26"
 optional = true
+default-features = false
+features = ["ring", "tls12", "logging"]
 
 [dependencies.tokio-stream]
 version = "0.1"

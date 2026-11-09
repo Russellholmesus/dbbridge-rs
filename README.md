@@ -18,7 +18,7 @@ network boundaries that only allow HTTP(S).
 | Operations | `/healthz`, `/readyz`, `/metrics`; credential reload; systemd unit / install |
 
 `cargo build --no-default-features` gives a build with no third-party crates at all (no TLS / HTTP/2).
-MSRV is Rust 1.75.
+MSRV is Rust 1.85.
 
 ## Build
 

@@ -202,7 +202,7 @@ pub fn rel(base: &str, target: &str) -> String {
     while i < b.len() && i < t.len() && b[i] == t[i] {
         i += 1;
     }
-    let mut parts: Vec<&str> = std::iter::repeat("..").take(b.len() - i).collect();
+    let mut parts: Vec<&str> = std::iter::repeat_n("..", b.len() - i).collect();
     parts.extend_from_slice(&t[i..]);
     parts.join("/")
 }

@@ -858,7 +858,7 @@ impl Session {
         if g.up_pending.iter().any(|(queued_offset, (payload, _, _))| {
             queued_offset
                 .checked_add(payload.len() as u64)
-                .map_or(true, |queued_end| queued_end > final_offset)
+                .is_none_or(|queued_end| queued_end > final_offset)
         }) {
             return Err(Error::new(
                 ERR_FRAME_CONFLICT,

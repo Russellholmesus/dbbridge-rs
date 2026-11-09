@@ -54,7 +54,7 @@ pub(in crate::ingress) fn cleanup_with_failover(
         order.push(false);
     }
     if failover {
-        order.extend(std::iter::repeat(true).take(backups.len()));
+        order.extend(std::iter::repeat_n(true, backups.len()));
     }
     if recovering {
         order.push(false);

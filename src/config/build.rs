@@ -540,28 +540,20 @@ fn check_server_certificate(http: &super::Http, offline: bool) -> Result<()> {
 #[cfg(feature = "tls")]
 fn key_matches_certificate(server: std::sync::Arc<rustls::ServerConfig>) -> bool {
     use std::sync::Arc;
-    /// Accepts any chain: only the handshake signature check matters here,
-    /// and rustls' default implementation of that verifies it against the
-    /// end-entity certificate.
-    struct AnyChain;
-    impl rustls::client::ServerCertVerifier for AnyChain {
-        fn verify_server_cert(
-            &self,
-            _end_entity: &rustls::Certificate,
-            _intermediates: &[rustls::Certificate],
-            _server_name: &rustls::ServerName,
-            _scts: &mut dyn Iterator<Item = &[u8]>,
-            _ocsp: &[u8],
-            _now: std::time::SystemTime,
-        ) -> std::result::Result<rustls::client::ServerCertVerified, rustls::Error> {
-            Ok(rustls::client::ServerCertVerified::assertion())
-        }
-    }
-    let client_config = rustls::ClientConfig::builder()
-        .with_safe_defaults()
-        .with_custom_certificate_verifier(Arc::new(AnyChain))
+    // Accepts any chain: only the handshake signature check matters here,
+    // and that verifies it against the end-entity certificate.
+    let provider = crate::net::tls::crypto_provider();
+    let verifier = Arc::new(crate::net::tls::AnyServerCert::new(provider.clone()));
+    let Ok(builder) =
+        rustls::ClientConfig::builder_with_provider(provider).with_safe_default_protocol_versions()
+    else {
+        return false;
+    };
+    let client_config = builder
+        .dangerous()
+        .with_custom_certificate_verifier(verifier)
         .with_no_client_auth();
-    let Ok(name) = rustls::ServerName::try_from("localhost") else {
+    let Ok(name) = rustls::pki_types::ServerName::try_from("localhost") else {
         return false;
     };
     let Ok(mut client) = rustls::ClientConnection::new(Arc::new(client_config), name) else {

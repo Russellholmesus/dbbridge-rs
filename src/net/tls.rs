@@ -7,6 +7,10 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use rustls::pki_types::pem::PemObject;
+use rustls::pki_types::{
+    CertificateDer, PrivateKeyDer, PrivatePkcs1KeyDer, PrivatePkcs8KeyDer, ServerName,
+};
 use rustls::{ClientConfig, RootCertStore, ServerConfig, ServerConnection, StreamOwned};
 
 use super::Conn;
@@ -93,7 +97,7 @@ impl TlsConn {
         timeout: Duration,
     ) -> io::Result<Self> {
         let name =
-            rustls::ServerName::try_from(host).map_err(|_| other("invalid TLS server name"))?;
+            ServerName::try_from(host.to_string()).map_err(|_| other("invalid TLS server name"))?;
         let conn = rustls::ClientConnection::new(config, name).map_err(other)?;
         stream.set_read_timeout(Some(POLL))?;
         stream.set_write_timeout(Some(POLL))?;
@@ -172,21 +176,25 @@ pub fn server_config(cert_path: &Path, key_path: &Path) -> io::Result<ServerConf
     };
     let cert = open(cert_path)?;
     let key = open(key_path)?;
-    let mut cr = std::io::BufReader::new(cert.as_slice());
-    let certs: Vec<rustls::Certificate> = rustls_pemfile::certs(&mut cr)
-        .map_err(other)?
-        .into_iter()
-        .map(rustls::Certificate)
-        .collect();
+    let certs = pem_certs(&cert)?;
     if certs.is_empty() {
         return Err(other("TLS certificate file contains no certificates"));
     }
     let key = read_key(&key)?;
-    let mut c = ServerConfig::builder()
-        .with_safe_defaults()
+    let provider = crypto_provider();
+    // Like rustls 0.21's `with_single_cert`, the key is only parsed here; a
+    // key that does not belong to the certificate is reported by the
+    // configuration check (`key_matches_certificate`), not at load time.
+    let signing_key = provider
+        .key_provider
+        .load_private_key(key)
+        .map_err(|_| other(rustls::Error::General("invalid private key".into())))?;
+    let certified = rustls::sign::CertifiedKey::new(certs, signing_key);
+    let mut c = ServerConfig::builder_with_provider(provider)
+        .with_safe_default_protocol_versions()
+        .map_err(other)?
         .with_no_client_auth()
-        .with_single_cert(certs, key)
-        .map_err(other)?;
+        .with_cert_resolver(Arc::new(rustls::sign::SingleCertAndKey::from(certified)));
     c.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
     Ok(c)
 }
@@ -204,21 +212,31 @@ fn os_text(e: &io::Error) -> String {
     }
 }
 
-fn read_key(bytes: &[u8]) -> io::Result<rustls::PrivateKey> {
-    let mut r = std::io::BufReader::new(bytes);
-    if let Some(k) = rustls_pemfile::pkcs8_private_keys(&mut r)
-        .map_err(other)?
-        .into_iter()
-        .next()
-    {
-        return Ok(rustls::PrivateKey(k));
+/// The ring crypto provider every TLS configuration of this crate uses.
+pub(crate) fn crypto_provider() -> Arc<rustls::crypto::CryptoProvider> {
+    Arc::new(rustls::crypto::ring::default_provider())
+}
+
+/// Every `CERTIFICATE` section of a PEM file; other sections are skipped.
+pub(crate) fn pem_certs(bytes: &[u8]) -> io::Result<Vec<CertificateDer<'static>>> {
+    CertificateDer::pem_slice_iter(bytes)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(other)
+}
+
+fn read_key(bytes: &[u8]) -> io::Result<PrivateKeyDer<'static>> {
+    let pkcs8 = PrivatePkcs8KeyDer::pem_slice_iter(bytes)
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(other)?;
+    if let Some(k) = pkcs8.into_iter().next() {
+        return Ok(PrivateKeyDer::Pkcs8(k));
     }
-    let mut r = std::io::BufReader::new(bytes);
-    rustls_pemfile::rsa_private_keys(&mut r)
+    PrivatePkcs1KeyDer::pem_slice_iter(bytes)
+        .collect::<Result<Vec<_>, _>>()
         .map_err(other)?
         .into_iter()
         .next()
-        .map(rustls::PrivateKey)
+        .map(PrivateKeyDer::Pkcs1)
         .ok_or_else(|| other("TLS private key file contains no supported private key"))
 }
 
@@ -226,49 +244,90 @@ pub fn client_config(ca_file: Option<&Path>, verify: bool) -> io::Result<ClientC
     let mut roots = RootCertStore::empty();
     if let Some(path) = ca_file {
         let bytes = std::fs::read(path)?;
-        let mut r = std::io::BufReader::new(bytes.as_slice());
-        for c in rustls_pemfile::certs(&mut r).map_err(other)? {
-            roots.add(&rustls::Certificate(c)).map_err(other)?;
+        for c in pem_certs(&bytes)? {
+            roots.add(c).map_err(other)?;
         }
         if roots.is_empty() {
             return Err(other("TLS CA file contains no certificates"));
         }
     } else {
-        for cert in rustls_native_certs::load_native_certs().map_err(other)? {
-            roots.add(&rustls::Certificate(cert.0)).map_err(other)?;
-        }
-    }
-    let mut c = if verify {
-        ClientConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(roots)
-            .with_no_client_auth()
-    } else {
-        struct NoVerify;
-        impl rustls::client::ServerCertVerifier for NoVerify {
-            fn verify_server_cert(
-                &self,
-                _: &rustls::Certificate,
-                _: &[rustls::Certificate],
-                _: &rustls::ServerName,
-                _: &mut dyn Iterator<Item = &[u8]>,
-                _: &[u8],
-                _: std::time::SystemTime,
-            ) -> Result<rustls::client::ServerCertVerified, rustls::Error> {
-                Ok(rustls::client::ServerCertVerified::assertion())
+        let native = rustls_native_certs::load_native_certs();
+        if native.certs.is_empty() {
+            if let Some(e) = native.errors.into_iter().next() {
+                return Err(other(e));
             }
         }
-        let mut c = ClientConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(roots)
-            .with_no_client_auth();
-        c.dangerous().set_certificate_verifier(Arc::new(NoVerify));
+        for cert in native.certs {
+            roots.add(cert).map_err(other)?;
+        }
+    }
+    let provider = crypto_provider();
+    let builder = ClientConfig::builder_with_provider(provider.clone())
+        .with_safe_default_protocol_versions()
+        .map_err(other)?;
+    let mut c = if verify {
+        builder.with_root_certificates(roots).with_no_client_auth()
+    } else {
+        let mut c = builder.with_root_certificates(roots).with_no_client_auth();
+        c.dangerous()
+            .set_certificate_verifier(Arc::new(AnyServerCert::new(provider)));
         c
     };
     // The synchronous client paths always speak HTTP/1.1 (including WebSocket
     // Upgrade). The dedicated H2 pool opts into h2 explicitly.
     c.alpn_protocols = vec![b"http/1.1".to_vec()];
     Ok(c)
+}
+
+/// Accepts any server certificate chain and name, but still verifies the
+/// handshake signatures against the end-entity certificate (what rustls 0.21's
+/// default `ServerCertVerifier` signature methods did).
+#[derive(Debug)]
+pub(crate) struct AnyServerCert {
+    algorithms: rustls::crypto::WebPkiSupportedAlgorithms,
+}
+
+impl AnyServerCert {
+    pub(crate) fn new(provider: Arc<rustls::crypto::CryptoProvider>) -> Self {
+        Self {
+            algorithms: provider.signature_verification_algorithms,
+        }
+    }
+}
+
+impl rustls::client::danger::ServerCertVerifier for AnyServerCert {
+    fn verify_server_cert(
+        &self,
+        _: &CertificateDer<'_>,
+        _: &[CertificateDer<'_>],
+        _: &ServerName<'_>,
+        _: &[u8],
+        _: rustls::pki_types::UnixTime,
+    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
+        Ok(rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls12_signature(message, cert, dss, &self.algorithms)
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        message: &[u8],
+        cert: &CertificateDer<'_>,
+        dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        rustls::crypto::verify_tls13_signature(message, cert, dss, &self.algorithms)
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        self.algorithms.supported_schemes()
+    }
 }
 
 impl Read for TlsConn {

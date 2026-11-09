@@ -303,9 +303,9 @@ impl Authenticator {
         let reason = error.message.clone();
         let should_log = trigger == "request"
             || state.last_error.as_deref() != Some(reason.as_str())
-            || state.last_logged.map_or(true, |at| {
-                now.duration_since(at) >= Duration::from_secs(5 * 60)
-            });
+            || state
+                .last_logged
+                .is_none_or(|at| now.duration_since(at) >= Duration::from_secs(5 * 60));
         if should_log {
             crate::slog::error(
                 "credential reload rejected; the previous credentials stay in effect, including identities the candidate disables or removes",

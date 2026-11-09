@@ -74,7 +74,7 @@ impl EndpointTable {
             .lock()
             .unwrap()
             .get(&(peer.to_string(), ep.to_string(), mode))
-            .map_or(true, |until| now >= *until)
+            .is_none_or(|until| now >= *until)
     }
 
     fn next_eligible(&self, peer: &str, ep: &str, modes: &[Mode], now: Instant) -> Option<Instant> {

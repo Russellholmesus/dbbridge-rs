@@ -5,12 +5,16 @@ use std::sync::{Arc, Condvar, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use hyper::body::HttpBody;
+use http_body_util::combinators::BoxBody;
+use http_body_util::{BodyExt, Full, StreamBody};
+use hyper::body::{Body as _, Bytes, Frame, Incoming};
 use hyper::service::service_fn;
-use hyper::{Body, Request as HRequest, Response, StatusCode};
+use hyper::{Request as HRequest, Response, StatusCode};
+use hyper_util::rt::{TokioExecutor, TokioIo, TokioTimer};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
+use tokio_stream::StreamExt;
 
 use crate::error::Error;
 use crate::net::tls::TlsConn;
@@ -21,6 +25,15 @@ use crate::wire::{self, Control, Mode};
 use super::accept::error_response;
 use super::pump::{ready_control, run_downstream};
 use super::{ConnectionPermit, Server, SessionLease};
+
+/// An HTTP/2 response body: either a complete buffer or the SSE stream.
+type Body = BoxBody<Bytes, hyper::Error>;
+
+fn full(bytes: impl Into<Bytes>) -> Body {
+    Full::new(bytes.into())
+        .map_err(|never| match never {})
+        .boxed()
+}
 
 /// Run one already-handshaken TLS connection as an HTTP/2-only server.
 ///
@@ -46,12 +59,12 @@ pub(super) fn serve(
             let permit = permit.clone();
             async move { Ok::<_, hyper::Error>(handle(server, req, permit).await) }
         });
-        hyper::server::conn::Http::new()
-            .http2_only(true)
-            .http2_max_concurrent_streams(Some(64))
-            .http2_keep_alive_interval(heartbeat)
-            .http2_keep_alive_timeout(Duration::from_secs(5))
-            .serve_connection(io, svc)
+        hyper::server::conn::http2::Builder::new(TokioExecutor::new())
+            .timer(TokioTimer::new())
+            .max_concurrent_streams(Some(64))
+            .keep_alive_interval(heartbeat)
+            .keep_alive_timeout(Duration::from_secs(5))
+            .serve_connection(TokioIo::new(io), svc)
             .await
             .map_err(|e| io::Error::other(e.to_string()))
     })
@@ -59,7 +72,7 @@ pub(super) fn serve(
 
 async fn handle(
     server: Arc<Server>,
-    req: HRequest<Body>,
+    req: HRequest<Incoming>,
     permit: Arc<Mutex<Option<ConnectionPermit>>>,
 ) -> Response<Body> {
     let (parts, mut body) = req.into_parts();
@@ -156,7 +169,13 @@ async fn handle(
     }
     let max_body = server.cfg.transport.max_frame_size.max(32 * 1024);
     let mut bytes = Vec::new();
-    while let Some(chunk) = body.data().await {
+    while let Some(frame) = body.frame().await {
+        let chunk = match frame.map(Frame::into_data) {
+            Ok(Ok(chunk)) => Ok(chunk),
+            // Trailers end the data, as `HttpBody::data` did.
+            Ok(Err(_)) => break,
+            Err(e) => Err(e),
+        };
         match chunk {
             Ok(chunk) if bytes.len().saturating_add(chunk.len()) <= max_body => {
                 bytes.extend_from_slice(&chunk)
@@ -224,7 +243,7 @@ fn response_from_parts(
         }
     }
     builder
-        .body(Body::from(body))
+        .body(full(body))
         .unwrap_or_else(|_| simple(StatusCode::INTERNAL_SERVER_ERROR, b"response error"))
 }
 
@@ -302,15 +321,14 @@ async fn handle_events(server: Arc<Server>, req: crate::net::http1::Request) -> 
         .header("x-accel-buffering", "no")
         .header(wire::H_IMPLICIT_READY, "1")
         .header(wire::H_INSTANCE_ID, server.cfg.node.instance_id.clone())
-        .body(Body::wrap_stream(ReceiverStream::new(rx)))
+        .body(BodyExt::boxed(StreamBody::new(
+            ReceiverStream::new(rx).map(|chunk| chunk.map(|bytes| Frame::data(Bytes::from(bytes)))),
+        )))
         .unwrap_or_else(|_| simple(StatusCode::INTERNAL_SERVER_ERROR, b"response error"))
 }
 
 fn simple(status: StatusCode, body: &'static [u8]) -> Response<Body> {
-    Response::builder()
-        .status(status)
-        .body(Body::from(body))
-        .unwrap()
+    Response::builder().status(status).body(full(body)).unwrap()
 }
 
 /// The HTTP/2 SSE response body of one events stream. Hyper owns the
@@ -752,13 +770,7 @@ mod poll_read_tests {
             shutdown_rx: None,
         };
         tx.try_send(Ok((0u8..10).collect())).unwrap();
-        // A no-op waker without Waker::noop (Rust 1.85; MSRV is 1.75).
-        struct Noop;
-        impl std::task::Wake for Noop {
-            fn wake(self: Arc<Self>) {}
-        }
-        let waker = std::task::Waker::from(Arc::new(Noop));
-        let mut cx = std::task::Context::from_waker(&waker);
+        let mut cx = std::task::Context::from_waker(std::task::Waker::noop());
         let mut got = Vec::new();
         for _ in 0..3 {
             let mut storage = [0u8; 4];

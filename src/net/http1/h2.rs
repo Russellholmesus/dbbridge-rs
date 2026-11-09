@@ -6,8 +6,10 @@ use std::io;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
-use hyper::body::HttpBody;
-use hyper::{Body, Request, Uri};
+use http_body_util::{BodyExt, Empty};
+use hyper::body::{Bytes, Incoming};
+use hyper::{Request, Uri};
+use hyper_util::rt::{TokioExecutor, TokioIo, TokioTimer};
 use tokio::sync::{mpsc as tmpsc, oneshot};
 use tokio_rustls::rustls;
 use tokio_rustls::TlsConnector;
@@ -181,7 +183,7 @@ async fn shard(
         if !has_ua {
             builder = builder.header("user-agent", crate::user_agent());
         }
-        let request = match builder.body(Body::empty()) {
+        let request = match builder.body(Empty::<Bytes>::new()) {
             Ok(r) => r,
             Err(e) => {
                 let _ = cmd
@@ -268,10 +270,19 @@ async fn shard(
     }
 }
 
-async fn collect_body(mut body: Body) -> std::result::Result<Vec<u8>, hyper::Error> {
+/// The next DATA frame of `body`; trailers end the data, as
+/// `HttpBody::data` did in hyper 0.14.
+async fn next_data(body: &mut Incoming) -> Option<std::result::Result<Bytes, hyper::Error>> {
+    match body.frame().await? {
+        Ok(frame) => frame.into_data().ok().map(Ok),
+        Err(e) => Some(Err(e)),
+    }
+}
+
+async fn collect_body(mut body: Incoming) -> std::result::Result<Vec<u8>, hyper::Error> {
     const MAX_ERROR_BODY: usize = 64 << 20;
     let mut out = Vec::new();
-    while let Some(chunk) = body.data().await {
+    while let Some(chunk) = next_data(&mut body).await {
         let chunk = chunk?;
         if out.len().saturating_add(chunk.len()) > MAX_ERROR_BODY {
             out.extend_from_slice(&chunk[..MAX_ERROR_BODY - out.len()]);
@@ -282,7 +293,7 @@ async fn collect_body(mut body: Body) -> std::result::Result<Vec<u8>, hyper::Err
     Ok(out)
 }
 
-type H2Sender = hyper::client::conn::SendRequest<Body>;
+type H2Sender = hyper::client::conn::http2::SendRequest<Empty<Bytes>>;
 
 async fn connect(
     url: &Url,
@@ -319,7 +330,7 @@ async fn connect(
     let mut config = crate::net::tls::client_config(tls.ca_file.as_deref(), tls.verify)?;
     config.alpn_protocols = vec![b"h2".to_vec()];
     let connector = TlsConnector::from(Arc::new(config));
-    let name = rustls::ServerName::try_from(url.host.as_str())
+    let name = rustls::pki_types::ServerName::try_from(url.host.clone())
         .map_err(|_| io::Error::other("invalid TLS server name"))?;
     let stream = tokio::time::timeout(timeout, connector.connect(name, tcp))
         .await
@@ -330,14 +341,14 @@ async fn connect(
             "peer did not negotiate HTTP/2",
         ));
     }
-    let mut builder = hyper::client::conn::Builder::new();
+    let mut builder = hyper::client::conn::http2::Builder::new(TokioExecutor::new());
     builder
-        .http2_only(true)
-        .http2_keep_alive_interval(heartbeat)
-        .http2_keep_alive_timeout(Duration::from_secs(5))
-        .http2_keep_alive_while_idle(true);
+        .timer(TokioTimer::new())
+        .keep_alive_interval(heartbeat)
+        .keep_alive_timeout(Duration::from_secs(5))
+        .keep_alive_while_idle(true);
     let (sender, connection) = builder
-        .handshake(stream)
+        .handshake(TokioIo::new(stream))
         .await
         .map_err(|e| io::Error::other(e.to_string()))?;
     tokio::spawn(async move {
@@ -361,12 +372,12 @@ impl H2Body {
             buf: Vec::new(),
         }
     }
-    fn from(mut body: Body, runtime: tokio::runtime::Handle) -> Self {
+    fn from(mut body: Incoming, runtime: tokio::runtime::Handle) -> Self {
         // A bounded channel is important here: awaiting send stops polling the
         // hyper body and therefore lets HTTP/2 flow control apply upstream.
         let (tx, rx) = tmpsc::channel(16);
         tokio::spawn(async move {
-            while let Some(chunk) = body.data().await {
+            while let Some(chunk) = next_data(&mut body).await {
                 let item = chunk.map(|b| b.to_vec()).map_err(|e| e.to_string());
                 if tx.send(item).await.is_err() {
                     return;
@@ -487,14 +498,13 @@ mod tests {
                 let service = hyper::service::service_fn(move |_request| {
                     count.fetch_add(1, Ordering::SeqCst);
                     async {
-                        Ok::<_, hyper::Error>(hyper::Response::new(Body::from(
-                            "data: local-h2\n\n",
+                        Ok::<_, hyper::Error>(hyper::Response::new(http_body_util::Full::new(
+                            Bytes::from("data: local-h2\n\n"),
                         )))
                     }
                 });
-                let connection = hyper::server::conn::Http::new()
-                    .http2_only(true)
-                    .serve_connection(stream, service);
+                let connection = hyper::server::conn::http2::Builder::new(TokioExecutor::new())
+                    .serve_connection(TokioIo::new(stream), service);
                 // The client drops its pooled TLS connection after all stream
                 // bodies have been consumed; Hyper reports that as EOF.
                 let _ = connection.await;

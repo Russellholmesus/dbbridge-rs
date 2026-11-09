@@ -968,7 +968,7 @@ mod tests {
     fn trailer_limit() {
         let mut raw =
             b"POST / HTTP/1.1\r\nHost: x\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n".to_vec();
-        raw.extend(std::iter::repeat(b'x').take(MAX_HEAD));
+        raw.extend(std::iter::repeat_n(b'x', MAX_HEAD));
         raw.extend_from_slice(b"\r\n\r\n");
         let err = read_request(&mut conn_from(&raw), 1024).unwrap_err();
         assert_eq!(err.kind(), io::ErrorKind::InvalidData);
@@ -977,7 +977,7 @@ mod tests {
     #[test]
     fn request_head_limit_is_respected() {
         let mut raw = b"GET / HTTP/1.1\r\nHost: x\r\nX-Pad: ".to_vec();
-        raw.extend(std::iter::repeat(b'x').take(13 * 1024));
+        raw.extend(std::iter::repeat_n(b'x', 13 * 1024));
         raw.extend_from_slice(b"\r\n\r\n");
         let err = read_request_head_with_limit(&mut conn_from(&raw), 8 * 1024).unwrap_err();
         assert_eq!(err.kind(), io::ErrorKind::InvalidData);
@@ -1077,7 +1077,7 @@ mod tests {
             assert_eq!(reject(raw), want, "{}", String::from_utf8_lossy(raw));
         }
         let mut big = b"GET /x HTTP/1.1\r\nHost: x\r\nX-Big: ".to_vec();
-        big.extend(std::iter::repeat(b'a').take(MAX_HEAD + 4096));
+        big.extend(std::iter::repeat_n(b'a', MAX_HEAD + 4096));
         big.extend_from_slice(b"\r\n\r\n");
         assert_eq!(reject(&big), Some((431, None)));
     }

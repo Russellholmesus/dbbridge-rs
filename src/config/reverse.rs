@@ -537,8 +537,7 @@ pub(super) fn read_file_limited(
 fn pem_has_certificate(data: &[u8]) -> bool {
     #[cfg(feature = "tls")]
     {
-        let mut reader = std::io::BufReader::new(data);
-        rustls_pemfile::certs(&mut reader)
+        crate::net::tls::pem_certs(data)
             .map(|certs| !certs.is_empty())
             .unwrap_or(false)
     }
